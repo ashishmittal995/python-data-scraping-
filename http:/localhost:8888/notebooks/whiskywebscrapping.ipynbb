@@ -1,1 +1,83 @@
-
+import from bs4 import BeautifulSoup
+import pandas as pd
+headers={'user-agent': "Mozilla/5.0 (Windows requests
+ NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"}
+ import requests
+headers={'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"}
+baseurl="https://www.thewhiskyexchange.com/"
+url="https://www.thewhiskyexchange.com/c/317/indian-whisky"
+response=requests.get(url,headers=headers)
+print(response)
+r=requests.get(url,headers)
+htmlcontent=r.content
+print(htmlcontent)
+soup=BeautifulSoup(htmlcontent,'html.parser')
+print(soup.prettify)
+title= soup.find(name="h1").get_text()
+print(title)
+Productlist=soup.find_all(name='div',class_="product-grid")
+print(Productlist)
+for item in Productlist:
+    for link in item.find_all('a',href=True):
+        print(link['href'])
+        productlinks=[]
+for item in Productlist:
+    for link in item.find_all('a',href=True):
+        productlinks.append(baseurl + link['href'])
+print(len(productlinks))
+testlink="https://www.thewhiskyexchange.com/p/10259/amrut-fusion"
+r=requests.get(testlink,headers=headers)
+soup=BeautifulSoup(r.content,'html.parser')
+name=soup.find('h1', class_="product-main__name").text.strip()
+#print(name)
+rating=soup.find('span',class_="review-overview__rating star-rating star-rating--50").text.strip()
+#print(rating)
+reviews=soup.find('span',class_="review-overview__count").get_text()
+price=soup.find('p',class_="product-action__price").get_text()
+#print(price)
+#print(name,rating,reviews,price)
+whisky={
+    'name': name,
+    'rating': rating,
+    'reviews': reviews,
+    'price': price,
+}
+r=requests.get(testlink,headers=headers)
+soup=BeautifulSoup(r.content,'html.parser')
+name=soup.find('h1', class_="product-main__name").text.strip()
+#print(name)
+rating=soup.find('span',class_="review-overview__rating star-rating star-rating--50").text.strip()
+#print(rating)
+reviews=soup.find('span',class_="review-overview__count").get_text()
+price=soup.find('p',class_="product-action__price").get_text()
+#print(price)
+#print(name,rating,reviews,price)
+whisky={
+    'name': name,
+    'rating': rating,
+    'reviews': reviews,
+    'price': price,
+}
+print(whisky)
+whiskylist=[]
+for links in productlinks:
+    r=requests.get(links,headers=headers)
+    soup=BeautifulSoup(r.content,'html.parser')
+    name=soup.find('h1', class_="product-main__name").text.strip()
+    price=soup.find('p',class_="product-action__price").text.strip()
+    try:
+        rating=soup.find('div',class_="review-overview").text.strip()
+    except:
+        rating= 'no rating'
+    whisky={
+    'name': name,
+    'rating': rating,
+    #'reviews': reviews,
+    'price': price,
+}
+   # print(whisky)
+    whiskylist.append(whisky)
+    print('saving :',whisky['name'])
+    df= pd.DataFrame(whiskylist)
+print(df.head(12))
+df.to_excel('whiskylist_scrapping_result',index=false)
